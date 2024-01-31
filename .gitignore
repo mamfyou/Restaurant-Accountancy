@@ -1,0 +1,11 @@
+.idea/
+venv/
+pyvenv.cfg
+**/migrations/**
+!**/migrations/__init__.py
+static_cdn/
+*.pyc
+*.pyo
+templates/
+.env
+db.sqlite3
