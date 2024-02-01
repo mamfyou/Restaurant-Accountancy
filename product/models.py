@@ -21,6 +21,10 @@ class PrimaryIngredient(BaseModel):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'محصول اولیه'
+        verbose_name_plural = 'محصولات اولیه'
+
 
 class PriceHistory(BaseModel):
     unit_price = models.CharField(max_length=200, verbose_name='قیمت واحد')
@@ -30,6 +34,10 @@ class PriceHistory(BaseModel):
 
     def __str__(self):
         return self.created_at.date().__str__() + ' : ' + self.ingredient.name
+
+    class Meta:
+        verbose_name = 'تاریخچه قیمت'
+        verbose_name_plural = 'تاریخچه قیمت ها'
 
 
 class MiddleIngredient(BaseModel):
@@ -52,6 +60,10 @@ class MiddleIngredient(BaseModel):
         if self.base_ingredient.related_ingredient.exists() and self.type == self.TypeChoices.PRIMARY:
             raise ValidationError('در حال حاضر نمیتوانید محصول میانی که دارای محصول میانی است اضافه کنید')
 
+    class Meta:
+        verbose_name = 'محصول میانی'
+        verbose_name_plural = 'محصولات میانی'
+
 
 class FinalProduct(BaseModel):
     name = models.CharField(max_length=200, verbose_name='نام')
@@ -61,14 +73,26 @@ class FinalProduct(BaseModel):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'محصول نهایی'
+        verbose_name_plural = 'محصولات نهایی'
+
 
 class FinalPriceHistory(BaseModel):
     sell_price = models.PositiveIntegerField(verbose_name='قیمت داخل منو')
     final_product = models.ForeignKey(FinalProduct, related_name='final_prices', on_delete=models.CASCADE,
                                       verbose_name='محصول نهایی')
 
+    class Meta:
+        verbose_name = 'تاریخچه قیمت داخل منو'
+        verbose_name_plural = 'تاریخچه قیمت های داخل منو'
+
 
 class SellPriceHistory(BaseModel):
-    sell_price = models.PositiveIntegerField(verbose_name='قیمت فروش')
+    sell_price = models.PositiveIntegerField(verbose_name='قیمت نهایی')
     final_product = models.ForeignKey(FinalProduct, related_name='sell_prices', on_delete=models.CASCADE,
                                       verbose_name='محصول نهایی')
+
+    class Meta:
+        verbose_name = 'تاریخچه قیمت نهایی'
+        verbose_name_plural = 'تاریخجه قیمت های نهایی'
