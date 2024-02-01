@@ -96,3 +96,7 @@ class SellPriceHistory(BaseModel):
     class Meta:
         verbose_name = 'تاریخچه قیمت نهایی'
         verbose_name_plural = 'تاریخجه قیمت های نهایی'
+
+
+class Menu(BaseModel):
+    file = models.FileField(verbose_name='فایل خروجی گرفته شده')
