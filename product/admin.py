@@ -48,7 +48,6 @@ class MiddleIngredientAdminForm(forms.ModelForm):
 
 class MiddleIngredientAdmin(admin.ModelAdmin):
     autocomplete_fields = ['base_ingredient']
-    # readonly_fields = ('type',)
     form = MiddleIngredientAdminForm
 
     def get_form(self, request, obj=None, **kwargs):
@@ -62,16 +61,44 @@ class SellPriceHistoryInLine(admin.StackedInline):
     model = SellPriceHistory
     extra = 0
 
+
 class FinalPriceHistoryInLine(admin.StackedInline):
     model = FinalPriceHistory
     extra = 0
 
+
 class FinalProductAdmin(admin.ModelAdmin):
     inlines = [SellPriceHistoryInLine, FinalPriceHistoryInLine]
+    list_display = ('name', 'get_last_sell_price', 'get_last_final_price', 'get_profit')
+
+    def get_last_final_price(self, obj):
+        if FinalPriceHistory.objects.filter(final_product=obj).first():
+            return FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
+
+    def get_last_sell_price(self, obj):
+        if SellPriceHistory.objects.filter(final_product=obj).first():
+            return SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
+
+    def get_profit(self, obj):
+        if (FinalPriceHistory.objects.filter(final_product=obj,
+                                             sell_price__gt=0).first() and
+                SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first()):
+            return (FinalPriceHistory.objects.filter(final_product=obj,
+                                                     sell_price__gt=0).first().sell_price -
+                    SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price)
+
+    get_last_final_price.short_description = 'قیمت ثبت شده در منو'
+    get_last_sell_price.short_description = 'قیمت محاسبه شده'
+    get_profit.short_description = 'سود محاسبه شده'
+
+
+class PriceHistoryAdmin(admin.ModelAdmin):
+    fields = ('unit_price', 'ingredient')
+    readonly_fields = ('ingredient',)
 
 
 admin.site.register(PrimaryIngredient, PrimaryIngredientAdmin)
 admin.site.register(MiddleIngredient, MiddleIngredientAdmin)
 admin.site.register(FinalProduct, FinalProductAdmin)
-admin.site.register(PriceHistory)
+admin.site.register(PriceHistory, PriceHistoryAdmin)
 admin.site.register(SellPriceHistory)

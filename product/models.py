@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from utils.base_models import BaseModel
+from jalali_date import date2jalali
 
 
 class PrimaryIngredient(BaseModel):
@@ -33,7 +34,8 @@ class PriceHistory(BaseModel):
     signal_involved = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.created_at.date().__str__() + ' : ' + self.ingredient.name
+        return str(
+            date2jalali(self.created_at.date())) + ' : ' + self.ingredient.name + ' -> ' + self.unit_price + ' تومان'
 
     class Meta:
         verbose_name = 'تاریخچه قیمت'
@@ -100,3 +102,8 @@ class SellPriceHistory(BaseModel):
 
 class Menu(BaseModel):
     file = models.FileField(verbose_name='فایل خروجی گرفته شده')
+    imported_file = models.FileField(verbose_name='فایل ورودی قیمت ها', null=True, blank=True)
+
+    def __str__(self):
+        return date2jalali(self.created_at.date())
+
