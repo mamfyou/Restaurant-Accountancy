@@ -72,6 +72,7 @@ class FinalPriceHistoryInLine(admin.StackedInline):
 class FinalProductAdmin(admin.ModelAdmin):
     inlines = [SellPriceHistoryInLine, FinalPriceHistoryInLine]
     list_display = ('name', 'get_last_sell_price', 'get_last_final_price', 'get_profit')
+    search_fields = ('name',)
 
     def get_last_final_price(self, obj):
         if FinalPriceHistory.objects.filter(final_product=obj).first():
