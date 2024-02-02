@@ -101,9 +101,13 @@ class SellPriceHistory(BaseModel):
 
 
 class Menu(BaseModel):
-    file = models.FileField(verbose_name='فایل خروجی گرفته شده')
+    file = models.FileField(verbose_name='فایل خروجی گرفته شده', null=True, blank=True, editable=False)
     imported_file = models.FileField(verbose_name='فایل ورودی قیمت ها', null=True, blank=True)
 
     def __str__(self):
-        return date2jalali(self.created_at.date())
+        return str(date2jalali(self.created_at.date()))
+
+    class Meta:
+        verbose_name = 'منو'
+        verbose_name_plural = 'منو ها'
 

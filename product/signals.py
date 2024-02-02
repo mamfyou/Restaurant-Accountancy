@@ -1,7 +1,14 @@
+import os
+
+import pandas as pd
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from jalali_date import date2jalali
 
-from product.models import PriceHistory, FinalProduct, SellPriceHistory
+from RestaurantAccountancy import settings
+from product.models import PriceHistory, FinalProduct, SellPriceHistory, Menu
+from utils.utils import create_data
 
 
 @receiver(post_save, sender=PriceHistory)
@@ -21,5 +28,17 @@ def update_middle_ingredient_prices(sender, instance, created, **kwargs):
 def update_prices(sender, instance, created, **kwargs):
     price = 0
     for i in instance.ingredients.all():
-        price += int(float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
+        price += int(
+            float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
     SellPriceHistory.objects.create(sell_price=price, final_product=instance)
+
+
+@receiver(post_save, sender=Menu)
+def export_data(sender, instance, created, **kwargs):
+    data = create_data()
+    path = os.path.join(settings.MEDIA_ROOT, f'menu_{str(date2jalali(instance.created_at.date()))}.xlsx')
+    data_to_excel = pd.ExcelWriter(path)
+    data.to_excel(data_to_excel)
+    file = data_to_excel.close()
+
+    Menu.objects.filter(id=instance.id).update(file=path.split(settings.MEDIA_ROOT)[1])

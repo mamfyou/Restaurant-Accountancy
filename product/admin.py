@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django import forms
+from jalali_date import date2jalali
 
-from .models import PrimaryIngredient, MiddleIngredient, FinalProduct, PriceHistory, SellPriceHistory, FinalPriceHistory
+from .models import PrimaryIngredient, MiddleIngredient, FinalProduct, PriceHistory, SellPriceHistory, \
+    FinalPriceHistory, Menu
 
 
 class PriceHistoryInLine(admin.StackedInline):
@@ -97,8 +99,13 @@ class PriceHistoryAdmin(admin.ModelAdmin):
     readonly_fields = ('ingredient',)
 
 
+class MenuAdmin(admin.ModelAdmin):
+    readonly_fields = ('file',)
+
+
 admin.site.register(PrimaryIngredient, PrimaryIngredientAdmin)
 admin.site.register(MiddleIngredient, MiddleIngredientAdmin)
 admin.site.register(FinalProduct, FinalProductAdmin)
 admin.site.register(PriceHistory, PriceHistoryAdmin)
 admin.site.register(SellPriceHistory)
+admin.site.register(Menu, MenuAdmin)
