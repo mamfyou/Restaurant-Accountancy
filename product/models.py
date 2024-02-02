@@ -95,6 +95,9 @@ class SellPriceHistory(BaseModel):
     final_product = models.ForeignKey(FinalProduct, related_name='sell_prices', on_delete=models.CASCADE,
                                       verbose_name='محصول نهایی')
 
+    def __str__(self):
+        return str(date2jalali(self.created_at.date()))
+
     class Meta:
         verbose_name = 'تاریخچه قیمت نهایی'
         verbose_name_plural = 'تاریخجه قیمت های نهایی'

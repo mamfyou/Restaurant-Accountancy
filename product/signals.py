@@ -37,8 +37,15 @@ def update_prices(sender, instance, created, **kwargs):
 def export_data(sender, instance, created, **kwargs):
     data = create_data()
     path = os.path.join(settings.MEDIA_ROOT, f'menu_{str(date2jalali(instance.created_at.date()))}.xlsx')
+
     data_to_excel = pd.ExcelWriter(path)
-    data.to_excel(data_to_excel)
-    file = data_to_excel.close()
+    data.to_excel(data_to_excel, sheet_name='قیمت محصولات')
+
+    # workbook = data_to_excel.book
+    # worksheet = data_to_excel.sheets['قیمت محصولات']
+    # format_right_to_left = workbook.add_format({'reading_order': 2})
+    # worksheet.right_to_left()
+
+    data_to_excel.close()
 
     Menu.objects.filter(id=instance.id).update(file=path.split(settings.MEDIA_ROOT)[1])
