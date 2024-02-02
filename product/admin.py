@@ -123,6 +123,7 @@ class PriceHistoryAdmin(admin.ModelAdmin):
 
 class MenuAdmin(admin.ModelAdmin):
     readonly_fields = ('file',)
+    list_filter = ('created_at',)
 
 
 class SellPriceHistoryAdmin(admin.ModelAdmin):
