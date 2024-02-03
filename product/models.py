@@ -6,16 +6,19 @@ from utils.base_models import BaseModel
 from jalali_date import date2jalali
 
 
-class PrimaryIngredient(BaseModel):
-    class UnitChoices(models.TextChoices):
-        KILO = 'کیلو', 'کیلو'
-        GRAM = 'گرم', 'گرم'
-        LITER = 'لیتر', 'لیتر'
-        BOX = 'جعبه', 'جعبه'
-        ITEM = 'عدد', 'عدد'
+class Unit(BaseModel):
+    title = models.CharField(max_length=20, verbose_name='واحد')
 
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = 'واحد'
+        verbose_name_plural = 'واحد ها'
+
+class PrimaryIngredient(BaseModel):
     name = models.CharField(max_length=250, verbose_name='نام')
-    unit = models.CharField(choices=UnitChoices.choices, max_length=20, verbose_name='واحد')
+    unit = models.ForeignKey(Unit, related_name='ingredients', on_delete=models.SET_NULL, null=True, verbose_name='واحد')
     related_ingredient = models.ManyToManyField('MiddleIngredient', verbose_name='ماده اولیه مرتبط', null=True,
                                                 blank=True, related_name='related_ingredient')
 
@@ -52,10 +55,10 @@ class MiddleIngredient(BaseModel):
     ])
     base_ingredient = models.ForeignKey(verbose_name='ماده اولیه', to=PrimaryIngredient, on_delete=models.CASCADE,
                                         related_name='middle_ingredients')
-    type = models.CharField(max_length=15, choices=TypeChoices.choices, default=TypeChoices.PRIMARY)
+    type = models.CharField(max_length=15, choices=TypeChoices.choices, default=TypeChoices.PRIMARY, verbose_name='نوع محصول مرتبط شده')
 
     def __str__(self):
-        return self.base_ingredient.name + ' : ' + ' ' + str(self.unit_amount) + ' ' + self.base_ingredient.unit
+        return self.base_ingredient.name + ' : ' + ' ' + str(self.unit_amount) + ' ' + self.base_ingredient.unit.title
 
     def clean(self):
         print(self.__dict__)
@@ -113,4 +116,3 @@ class Menu(BaseModel):
     class Meta:
         verbose_name = 'منو'
         verbose_name_plural = 'منو ها'
-

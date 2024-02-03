@@ -1,8 +1,10 @@
+import os
+
 import pandas as pd
 from django.core.exceptions import ValidationError
 from openpyxl.reader.excel import load_workbook
 
-from product.models import FinalProduct, FinalPriceHistory, SellPriceHistory, PrimaryIngredient, PriceHistory
+from product.models import FinalProduct, FinalPriceHistory, SellPriceHistory, PrimaryIngredient, PriceHistory, Unit
 
 
 def get_last_final_price(product):
@@ -35,16 +37,15 @@ def create_data():
 def import_from_excel(imported_file):
     try:
         wb = load_workbook(imported_file.path)
-        ws = wb['Sheet1']
+        ws = wb['Page 1']
         all_rows = list(ws.rows)
-        for row in range(1, len(all_rows)):
-            product_name = all_rows[row][0]
-            product_unit = all_rows[row][1]
-            product_unit_price = all_rows[row][2]
+        for row in range(2, len(all_rows)):
+            product_name = all_rows[row][1].value
+            product_unit = all_rows[row][2].value
+            product_unit_price = int(all_rows[row][3].value)
             if not PrimaryIngredient.objects.filter(name=product_name).exists():
-                if product_unit not in [choice[0] for choice in PrimaryIngredient.UnitChoices.choices]:
-                    raise ValidationError(f'{product_unit} یک انتخاب معتبر برای واحد نیست! ')
-                PrimaryIngredient.objects.create(name=product_name, unit=product_unit)
+                PrimaryIngredient.objects.create(name=product_name,
+                                                 unit=Unit.objects.get_or_create(title=product_unit)[0])
             PriceHistory.objects.create(unit_price=product_unit_price,
                                         ingredient=PrimaryIngredient.objects.get(name=product_name))
     except ValidationError as v:
@@ -52,22 +53,21 @@ def import_from_excel(imported_file):
     except Exception as e:
         raise Exception('فایل اکسل وارد شده در فرمت درستی نمی باشد!')
 
+
 def validate_excel(imported_file):
     try:
-        wb = load_workbook(imported_file.path)
-        ws = wb['Sheet1']
+        imported_file.save(imported_file.name)
+        path = imported_file.path
+        wb = load_workbook(path)
+        ws = wb['Page 1']
         all_rows = list(ws.rows)
-        for row in range(1, len(all_rows)):
-            product_name = all_rows[row][0]
-            product_unit = all_rows[row][1]
-            product_unit_price = all_rows[row][2]
-            if not PrimaryIngredient.objects.filter(name=product_name).exists():
-                if product_unit not in [choice[0] for choice in PrimaryIngredient.UnitChoices.choices]:
-                    raise ValidationError(f'{product_unit} یک انتخاب معتبر برای واحد نیست! ')
-                # PrimaryIngredient.objects.create(name=product_name, unit=product_unit)
-            # PriceHistory.objects.create(unit_price=product_unit_price,
-            #                             ingredient=PrimaryIngredient.objects.get(name=product_name))
-    except ValidationError as v:
-        raise ValidationError(v)
+        for row in range(2, len(all_rows)):
+            product_name = all_rows[row][1].value
+            product_unit = all_rows[row][2].value
+            product_unit_price = int(all_rows[row][3].value)
     except Exception as e:
+        try:
+            os.remove(path)
+        except Exception:
+            pass
         raise Exception('فایل اکسل وارد شده در فرمت درستی نمی باشد!')
