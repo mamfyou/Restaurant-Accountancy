@@ -2,8 +2,10 @@ import datetime
 
 from django.contrib import admin
 from django import forms
+from django.core.exceptions import ValidationError
 from jalali_date import date2jalali
 
+from utils.utils import import_from_excel, validate_excel
 from .models import PrimaryIngredient, MiddleIngredient, FinalProduct, PriceHistory, SellPriceHistory, \
     FinalPriceHistory, Menu
 
@@ -121,9 +123,26 @@ class PriceHistoryAdmin(admin.ModelAdmin):
         return False
 
 
+class MenuForm(forms.ModelForm):
+    class Meta:
+        model = Menu
+        fields = '__all__'
+
+    def clean(self):
+        print(self.cleaned_data)
+        excel_file = self.cleaned_data.get('imported_file')
+        if excel_file:
+            try:
+                validate_excel(excel_file)
+            except Exception as e:
+                raise ValidationError(e)
+        super().clean()
+
+
 class MenuAdmin(admin.ModelAdmin):
     readonly_fields = ('file',)
     list_filter = ('created_at',)
+    form = MenuForm
 
 
 class SellPriceHistoryAdmin(admin.ModelAdmin):

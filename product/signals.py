@@ -1,14 +1,16 @@
 import os
 
 import pandas as pd
+from django.core.exceptions import ValidationError
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from jalali_date import date2jalali
+from openpyxl.reader.excel import load_workbook
 
 from RestaurantAccountancy import settings
-from product.models import PriceHistory, FinalProduct, SellPriceHistory, Menu
-from utils.utils import create_data
+from product.models import PriceHistory, FinalProduct, SellPriceHistory, Menu, PrimaryIngredient
+from utils.utils import create_data, import_from_excel
 
 
 @receiver(post_save, sender=PriceHistory)
@@ -35,6 +37,8 @@ def update_prices(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Menu)
 def export_data(sender, instance, created, **kwargs):
+    if instance.imported_file:
+        import_from_excel(instance.imported_file)
     data = create_data()
     path = os.path.join(settings.MEDIA_ROOT, f'menu_{str(date2jalali(instance.created_at.date()))}.xlsx')
 
