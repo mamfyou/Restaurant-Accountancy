@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from openpyxl.reader.excel import load_workbook
 
 from product.models import FinalProduct, FinalPriceHistory, SellPriceHistory, PrimaryIngredient, PriceHistory, Unit
@@ -56,8 +57,9 @@ def import_from_excel(imported_file):
 
 def validate_excel(imported_file):
     try:
-        imported_file.save(imported_file.name)
-        path = imported_file.path
+        name = default_storage.save(imported_file.name, imported_file)
+        path = default_storage.path(name)
+
         wb = load_workbook(path)
         ws = wb['Page 1']
         all_rows = list(ws.rows)
@@ -65,9 +67,10 @@ def validate_excel(imported_file):
             product_name = all_rows[row][1].value
             product_unit = all_rows[row][2].value
             product_unit_price = int(all_rows[row][3].value)
+        default_storage.delete(path)
     except Exception as e:
         try:
-            os.remove(path)
+            default_storage.delete(path)
         except Exception:
             pass
         raise Exception('فایل اکسل وارد شده در فرمت درستی نمی باشد!')

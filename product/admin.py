@@ -91,6 +91,7 @@ class FinalProductAdmin(admin.ModelAdmin):
     inlines = [SellPriceHistoryInLine, FinalPriceHistoryInLine]
     list_display = ('name', 'get_last_sell_price', 'get_last_final_price', 'get_profit')
     search_fields = ('name',)
+    autocomplete_fields = ('ingredients',)
 
     def get_last_final_price(self, obj):
         if FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
