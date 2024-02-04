@@ -80,11 +80,23 @@ class SellPriceHistoryInLine(admin.StackedInline):
     extra = 0
     ordering = ['-created_at']
 
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
 
 class FinalPriceHistoryInLine(admin.StackedInline):
     model = FinalPriceHistory
     extra = 0
     ordering = ['-created_at']
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 class FinalProductAdmin(admin.ModelAdmin):

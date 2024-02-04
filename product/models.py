@@ -50,8 +50,8 @@ class MiddleIngredient(BaseModel):
         PRIMARY = 'p', 'محصول اولیه'
         FINAL = 'f', 'محصول نهایی'
 
-    unit_amount = models.FloatField(verbose_name='نسبت مورد نیاز(عددی اعشاری بین ۰ و ۱ وارد کنید)', validators=[
-        MinValueValidator(0), MaxValueValidator(1)
+    unit_amount = models.FloatField(verbose_name='نسبت مورد نیاز(عددی اعشاری بزرگ تر از صفر وارد کنید)', validators=[
+        MinValueValidator(0)
     ])
     base_ingredient = models.ForeignKey(verbose_name='ماده اولیه', to=PrimaryIngredient, on_delete=models.CASCADE,
                                         related_name='middle_ingredients')
