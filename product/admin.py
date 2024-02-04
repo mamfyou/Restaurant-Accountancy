@@ -40,7 +40,8 @@ class PrimaryIngredientAdmin(admin.ModelAdmin):
         price = 0
         for i in middle_ingredients:
             price += int(
-                float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
+                float(PriceHistory.objects.filter(ingredient=i.base_ingredient).order_by(
+                    '-created_at').first().unit_price) * i.unit_amount)
         return price
 
     def get_readonly_fields(self, request, obj=None):
