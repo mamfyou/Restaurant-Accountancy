@@ -92,9 +92,6 @@ class FinalPriceHistoryInLine(admin.StackedInline):
     extra = 0
     ordering = ['-created_at']
 
-    def has_add_permission(self, request, obj):
-        return False
-
     def has_change_permission(self, request, obj=None):
         return False
 
@@ -131,6 +128,12 @@ class PriceHistoryAdmin(admin.ModelAdmin):
     readonly_fields = ('ingredient',)
     search_fields = ('ingredient__name', 'unit_price')
     list_filter = ('created_at',)
+    list_display = ('get_date', 'ingredient', 'unit_price')
+
+    def get_date(self, obj):
+        return date2jalali(obj.created_at.date())
+
+    get_date.short_description = 'تاریخ'
 
     def has_change_permission(self, request, obj=None):
         return False
@@ -190,6 +193,9 @@ class SellPriceHistoryAdmin(admin.ModelAdmin):
 
         if final_price_queryset:
             return final_price_queryset.first().sell_price - obj.sell_price
+
+    def has_add_permission(self, request):
+        return False
 
 
 admin.site.register(PrimaryIngredient, PrimaryIngredientAdmin)
