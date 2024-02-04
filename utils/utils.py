@@ -9,12 +9,12 @@ from product.models import FinalProduct, FinalPriceHistory, SellPriceHistory, Pr
 
 
 def get_last_final_price(product):
-    if FinalPriceHistory.objects.filter(final_product=product).first():
+    if FinalPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first():
         return FinalPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first().sell_price
 
 
 def get_last_sell_price(product):
-    if SellPriceHistory.objects.filter(final_product=product).first():
+    if SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first():
         return SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first().sell_price
 
 
