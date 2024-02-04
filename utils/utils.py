@@ -20,11 +20,11 @@ def get_last_sell_price(product):
 
 def get_profit(product):
     if (FinalPriceHistory.objects.filter(final_product=product,
-                                         sell_price__gt=0).first() and
-            SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first()):
+                                         sell_price__gt=0).order_by('-created_at').first() and
+            SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first()):
         return (FinalPriceHistory.objects.filter(final_product=product,
-                                                 sell_price__gt=0).first().sell_price -
-                SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first().sell_price)
+                                                 sell_price__gt=0).order_by('-created_at').first().sell_price -
+                SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first().sell_price)
 
 
 def create_data():
