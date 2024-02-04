@@ -35,6 +35,7 @@ def update_prices(sender, instance, created, **kwargs):
     SellPriceHistory.objects.create(sell_price=price, final_product=instance)
 
 
+
 @receiver(post_save, sender=Menu)
 def export_data(sender, instance, created, **kwargs):
     if instance.imported_file:
