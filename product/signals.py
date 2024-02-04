@@ -1,15 +1,12 @@
 import os
 
 import pandas as pd
-from django.core.exceptions import ValidationError
-
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from jalali_date import date2jalali
-from openpyxl.reader.excel import load_workbook
 
 from RestaurantAccountancy import settings
-from product.models import PriceHistory, FinalProduct, SellPriceHistory, Menu, PrimaryIngredient
+from product.models import PriceHistory, FinalProduct, SellPriceHistory, Menu, MiddleIngredient
 from utils.utils import create_data, import_from_excel
 
 
@@ -26,14 +23,27 @@ def update_middle_ingredient_prices(sender, instance, created, **kwargs):
                                                     unit_price=int(float(instance.unit_price) * i.unit_amount))
 
 
-@receiver(post_save, sender=FinalProduct)
-def update_prices(sender, instance, created, **kwargs):
-    price = 0
-    for i in instance.ingredients.all():
-        price += int(
-            float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
-    SellPriceHistory.objects.create(sell_price=price, final_product=instance)
+@receiver(post_save, sender=PriceHistory)
+def update_final_product(sender, instance: PriceHistory, created, **kwargs):
+    finals = FinalProduct.objects.filter(ingredients__base_ingredient=instance.ingredient)
+    if finals.exists():
+        for final in finals:
+            price = 0
+            for i in final.ingredients.all():
+                price += int(
+                    float(PriceHistory.objects.filter(ingredient=i.base_ingredient).order_by('-created_at').first().unit_price) * i.unit_amount)
+            if price > 0:
+                SellPriceHistory.objects.create(sell_price=price, final_product=final)
 
+
+@receiver(m2m_changed, sender=FinalProduct.ingredients.through)
+def update_prices(sender, instance, action, **kwargs):
+    if action in ['post_add']:
+        price = 0
+        for i in instance.ingredients.all():
+            price += int(
+                float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
+        SellPriceHistory.objects.create(sell_price=price, final_product=instance)
 
 
 @receiver(post_save, sender=Menu)

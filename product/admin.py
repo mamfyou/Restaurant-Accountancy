@@ -105,19 +105,19 @@ class FinalProductAdmin(admin.ModelAdmin):
 
     def get_last_final_price(self, obj):
         if FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
-            return FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
+            return FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first().sell_price
 
     def get_last_sell_price(self, obj):
         if SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
-            return SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
+            return SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first().sell_price
 
     def get_profit(self, obj):
         if (FinalPriceHistory.objects.filter(final_product=obj,
-                                             sell_price__gt=0).first() and
-                SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first()):
+                                             sell_price__gt=0).order_by('-created_at').first() and
+                SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first()):
             return (FinalPriceHistory.objects.filter(final_product=obj,
-                                                     sell_price__gt=0).first().sell_price -
-                    SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price)
+                                                     sell_price__gt=0).order_by('-created_at').first().sell_price -
+                    SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first().sell_price)
 
     get_last_final_price.short_description = 'قیمت ثبت شده در منو'
     get_last_sell_price.short_description = 'قیمت محاسبه شده'
