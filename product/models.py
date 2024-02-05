@@ -127,6 +127,6 @@ class Menu(BaseModel):
         return str(date2jalali(self.created_at.date()))
 
     class Meta:
-        verbose_name = 'منو'
-        verbose_name_plural = 'منو ها'
+        verbose_name = 'ورودی و خروجی'
+        verbose_name_plural = 'ورودی و خروجی ها'
         ordering = ['-created_at']
