@@ -1,5 +1,3 @@
-import os
-
 import pandas as pd
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
@@ -9,22 +7,20 @@ from product.models import FinalProduct, FinalPriceHistory, SellPriceHistory, Pr
 
 
 def get_last_final_price(product):
-    if FinalPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first():
-        return FinalPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first().sell_price
+    if FinalPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first():
+        return FinalPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first().sell_price
 
 
 def get_last_sell_price(product):
-    if SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first():
-        return SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first().sell_price
+    if SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first():
+        return SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).first().sell_price
 
 
 def get_profit(product):
-    if (FinalPriceHistory.objects.filter(final_product=product,
-                                         sell_price__gt=0).order_by('-created_at').first() and
-            SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first()):
-        return (FinalPriceHistory.objects.filter(final_product=product,
-                                                 sell_price__gt=0).order_by('-created_at').first().sell_price -
-                SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0).order_by('-created_at').first().sell_price)
+    final_price_history_qs = FinalPriceHistory.objects.filter(final_product=product, sell_price__gt=0)
+    sell_price_history_qs = SellPriceHistory.objects.filter(final_product=product, sell_price__gt=0)
+    if final_price_history_qs.exists() and sell_price_history_qs.exists():
+        return final_price_history_qs.first().sell_price - sell_price_history_qs.first().sell_price
 
 
 def create_data():

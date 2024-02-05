@@ -15,6 +15,7 @@ class Unit(BaseModel):
     class Meta:
         verbose_name = 'واحد'
         verbose_name_plural = 'واحد ها'
+        ordering = ['-created_at']
 
 class PrimaryIngredient(BaseModel):
     name = models.CharField(max_length=250, verbose_name='نام')
@@ -28,6 +29,7 @@ class PrimaryIngredient(BaseModel):
     class Meta:
         verbose_name = 'محصول اولیه'
         verbose_name_plural = 'محصولات اولیه'
+        ordering = ['-created_at']
 
 
 class PriceHistory(BaseModel):
@@ -43,6 +45,7 @@ class PriceHistory(BaseModel):
     class Meta:
         verbose_name = 'تاریخچه قیمت'
         verbose_name_plural = 'تاریخچه قیمت ها'
+        ordering = ['-created_at']
 
 
 class MiddleIngredient(BaseModel):
@@ -68,6 +71,7 @@ class MiddleIngredient(BaseModel):
     class Meta:
         verbose_name = 'محصول میانی'
         verbose_name_plural = 'محصولات میانی'
+        ordering = ['-created_at']
 
 
 class FinalProduct(BaseModel):
@@ -81,6 +85,7 @@ class FinalProduct(BaseModel):
     class Meta:
         verbose_name = 'محصول نهایی'
         verbose_name_plural = 'محصولات نهایی'
+        ordering = ['-created_at']
 
 
 class FinalPriceHistory(BaseModel):
@@ -91,6 +96,7 @@ class FinalPriceHistory(BaseModel):
     class Meta:
         verbose_name = 'تاریخچه قیمت داخل منو'
         verbose_name_plural = 'تاریخچه قیمت های داخل منو'
+        ordering = ['-created_at']
 
 
 class SellPriceHistory(BaseModel):
@@ -104,6 +110,7 @@ class SellPriceHistory(BaseModel):
     class Meta:
         verbose_name = 'تاریخچه قیمت نهایی'
         verbose_name_plural = 'تاریخجه قیمت های نهایی'
+        ordering = ['-created_at']
 
 
 class Menu(BaseModel):
@@ -116,3 +123,4 @@ class Menu(BaseModel):
     class Meta:
         verbose_name = 'منو'
         verbose_name_plural = 'منو ها'
+        ordering = ['-created_at']

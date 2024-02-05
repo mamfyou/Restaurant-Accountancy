@@ -31,7 +31,7 @@ class PrimaryIngredientAdmin(admin.ModelAdmin):
     autocomplete_fields = ('related_ingredient',)
 
     def get_last_price(self, obj):
-        return obj.price_history.order_by('-created_at').first().unit_price if obj.price_history.exists() else None
+        return obj.price_history.first().unit_price if obj.price_history.exists() else None
 
     get_last_price.short_description = 'آخرین قیمت'
     search_fields = ['name']
@@ -40,8 +40,7 @@ class PrimaryIngredientAdmin(admin.ModelAdmin):
         price = 0
         for i in middle_ingredients:
             price += int(
-                float(PriceHistory.objects.filter(ingredient=i.base_ingredient).order_by(
-                    '-created_at').first().unit_price) * i.unit_amount)
+                float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
         return price
 
     def get_readonly_fields(self, request, obj=None):
@@ -71,7 +70,6 @@ class MiddleIngredientAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        # Set the default value for the 'type' field
         form.base_fields['type'].initial = 'f'
         return form
 
@@ -105,19 +103,17 @@ class FinalProductAdmin(admin.ModelAdmin):
 
     def get_last_final_price(self, obj):
         if FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
-            return FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first().sell_price
+            return FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
 
     def get_last_sell_price(self, obj):
         if SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
-            return SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first().sell_price
+            return SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
 
     def get_profit(self, obj):
-        if (FinalPriceHistory.objects.filter(final_product=obj,
-                                             sell_price__gt=0).order_by('-created_at').first() and
-                SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first()):
-            return (FinalPriceHistory.objects.filter(final_product=obj,
-                                                     sell_price__gt=0).order_by('-created_at').first().sell_price -
-                    SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).order_by('-created_at').first().sell_price)
+        final_price_history_qs = FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0)
+        sell_price_history_qs = SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0)
+        if final_price_history_qs.exists() and sell_price_history_qs.exists():
+            return final_price_history_qs.first().sell_price - sell_price_history_qs.first().sell_price
 
     get_last_final_price.short_description = 'قیمت ثبت شده در منو'
     get_last_sell_price.short_description = 'قیمت محاسبه شده'
