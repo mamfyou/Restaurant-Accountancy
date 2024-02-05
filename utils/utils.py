@@ -72,8 +72,17 @@ def validate_excel(imported_file):
         raise Exception('فایل اکسل وارد شده در فرمت درستی نمی باشد!')
 
 
+def persian_to_english_number(persian_number):
+    persian_to_english = {'۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8',
+                          '۹': '9'}
+    english_number = ''.join(
+        persian_to_english[digit] if digit in persian_to_english else digit for digit in str(persian_number))
+    return english_number
+
+
 def format_number(number):
-    num_str = str(number)
+    num = persian_to_english_number(number)
+    num_str = str(num)
     length = len(num_str)
 
     # Check if the length is not a multiple of 3
