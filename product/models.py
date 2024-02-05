@@ -17,9 +17,11 @@ class Unit(BaseModel):
         verbose_name_plural = 'واحد ها'
         ordering = ['-created_at']
 
+
 class PrimaryIngredient(BaseModel):
     name = models.CharField(max_length=250, verbose_name='نام')
-    unit = models.ForeignKey(Unit, related_name='ingredients', on_delete=models.SET_NULL, null=True, verbose_name='واحد')
+    unit = models.ForeignKey(Unit, related_name='ingredients', on_delete=models.SET_NULL, null=True,
+                             verbose_name='واحد')
     related_ingredient = models.ManyToManyField('MiddleIngredient', verbose_name='ماده اولیه مرتبط', null=True,
                                                 blank=True, related_name='related_ingredient')
 
@@ -58,7 +60,8 @@ class MiddleIngredient(BaseModel):
     ])
     base_ingredient = models.ForeignKey(verbose_name='ماده اولیه', to=PrimaryIngredient, on_delete=models.CASCADE,
                                         related_name='middle_ingredients')
-    type = models.CharField(max_length=15, choices=TypeChoices.choices, default=TypeChoices.PRIMARY, verbose_name='نوع محصول مرتبط شده')
+    type = models.CharField(max_length=15, choices=TypeChoices.choices, default=TypeChoices.PRIMARY,
+                            verbose_name='نوع محصول مرتبط شده')
 
     def __str__(self):
         return self.base_ingredient.name + ' : ' + ' ' + str(self.unit_amount) + ' ' + self.base_ingredient.unit.title
@@ -92,6 +95,9 @@ class FinalPriceHistory(BaseModel):
     sell_price = models.PositiveIntegerField(verbose_name='قیمت داخل منو')
     final_product = models.ForeignKey(FinalProduct, related_name='final_prices', on_delete=models.CASCADE,
                                       verbose_name='محصول نهایی')
+
+    def __str__(self):
+        return self.final_product.name
 
     class Meta:
         verbose_name = 'تاریخچه قیمت داخل منو'

@@ -70,3 +70,33 @@ def validate_excel(imported_file):
         except Exception:
             pass
         raise Exception('فایل اکسل وارد شده در فرمت درستی نمی باشد!')
+
+
+def format_number(number):
+    num_str = str(number)
+    length = len(num_str)
+
+    # Check if the length is not a multiple of 3
+    if length % 3 != 0:
+        # Calculate the number of leading zeros needed
+        leading_zeros = 3 - (length % 3)
+        # Add leading zeros to make the length a multiple of 3
+        num_str = '0' * leading_zeros + num_str
+
+    # Remove leading zeros
+    num_str = num_str.lstrip('0')
+
+    # Reverse the string, group the digits into sets of three, and join them with commas
+    result = ','.join([num_str[::-1][i:i + 3] for i in range(0, len(num_str), 3)])
+
+    return str(result[::-1]) + ' تومان '
+
+
+def get_color(profit: int):
+    if profit == 0:
+        color = 'white'
+    elif profit < 0:
+        color = '#ce3d3a'
+    else:
+        color = 'green'
+    return color

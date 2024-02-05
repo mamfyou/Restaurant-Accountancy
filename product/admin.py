@@ -3,9 +3,10 @@ import datetime
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.html import format_html
 from jalali_date import date2jalali
 
-from utils.utils import import_from_excel, validate_excel
+from utils.utils import import_from_excel, validate_excel, format_number, get_color
 from .models import PrimaryIngredient, MiddleIngredient, FinalProduct, PriceHistory, SellPriceHistory, \
     FinalPriceHistory, Menu
 
@@ -14,7 +15,13 @@ class PriceHistoryInLine(admin.StackedInline):
     model = PriceHistory
     extra = 0
     ordering = ['-created_at']
-    fields = ('unit_price',)
+    fields = ('unit_price', 'get_unit_price')
+    readonly_fields = ('get_unit_price',)
+
+    def get_unit_price(self, obj):
+        return format_number(obj.unit_price)
+
+    get_unit_price.short_description = 'قیمت'
 
     def has_change_permission(self, request, obj=None):
         return False
@@ -31,7 +38,7 @@ class PrimaryIngredientAdmin(admin.ModelAdmin):
     autocomplete_fields = ('related_ingredient',)
 
     def get_last_price(self, obj):
-        return obj.price_history.first().unit_price if obj.price_history.exists() else None
+        return format_number((int(obj.price_history.first().unit_price))) if obj.price_history.exists() else None
 
     get_last_price.short_description = 'آخرین قیمت'
     search_fields = ['name']
@@ -78,6 +85,13 @@ class SellPriceHistoryInLine(admin.StackedInline):
     model = SellPriceHistory
     extra = 0
     ordering = ['-created_at']
+    fields = ('sell_price', 'get_sell_price')
+    readonly_fields = ('get_sell_price',)
+
+    def get_sell_price(self, obj):
+        return format_number(obj.sell_price)
+
+    get_sell_price.short_description = 'قیمت نهایی'
 
     def has_add_permission(self, request, obj):
         return False
@@ -90,6 +104,13 @@ class FinalPriceHistoryInLine(admin.StackedInline):
     model = FinalPriceHistory
     extra = 0
     ordering = ['-created_at']
+    fields = ('sell_price', 'get_sell_price')
+    readonly_fields = ('get_sell_price',)
+
+    def get_sell_price(self, obj):
+        return format_number(obj.sell_price)
+
+    get_sell_price.short_description = 'قیمت ثبت شده در منو'
 
     def has_change_permission(self, request, obj=None):
         return False
@@ -103,17 +124,21 @@ class FinalProductAdmin(admin.ModelAdmin):
 
     def get_last_final_price(self, obj):
         if FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
-            return FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
+            return format_number(
+                FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price)
 
     def get_last_sell_price(self, obj):
         if SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
-            return SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price
+            return format_number(
+                SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first().sell_price)
 
     def get_profit(self, obj):
         final_price_history_qs = FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0)
         sell_price_history_qs = SellPriceHistory.objects.filter(final_product=obj, sell_price__gt=0)
         if final_price_history_qs.exists() and sell_price_history_qs.exists():
-            return final_price_history_qs.first().sell_price - sell_price_history_qs.first().sell_price
+            profit = final_price_history_qs.first().sell_price - sell_price_history_qs.first().sell_price
+            color = get_color(profit)
+            return format_html('<span style="color:{};">{}</span>', color, format_number(profit))
 
     get_last_final_price.short_description = 'قیمت ثبت شده در منو'
     get_last_sell_price.short_description = 'قیمت محاسبه شده'
@@ -121,16 +146,19 @@ class FinalProductAdmin(admin.ModelAdmin):
 
 
 class PriceHistoryAdmin(admin.ModelAdmin):
-    fields = ('unit_price', 'ingredient')
-    readonly_fields = ('ingredient',)
+    fields = ('unit_price', 'ingredient' 'get_unit_price')
+    readonly_fields = ('ingredient', 'get_unit_price')
     search_fields = ('ingredient__name', 'unit_price')
     list_filter = ('created_at',)
-    list_display = ('get_date', 'ingredient', 'unit_price')
+    list_display = ('get_date', 'ingredient', 'get_unit_price')
 
     def get_date(self, obj):
         return date2jalali(obj.created_at.date())
 
     get_date.short_description = 'تاریخ'
+
+    def get_unit_price(self, obj):
+        return format_number(obj.unit_price)
 
     def has_change_permission(self, request, obj=None):
         return False
@@ -159,9 +187,9 @@ class MenuAdmin(admin.ModelAdmin):
 
 
 class SellPriceHistoryAdmin(admin.ModelAdmin):
-    list_display = ('get_name', 'get_final_price', 'sell_price', 'get_profit', 'get_date')
+    list_display = ('get_name', 'get_final_price', 'get_sell_price', 'get_profit', 'get_date')
     fields = ('get_name', 'get_final_price', 'sell_price', 'get_profit', 'get_date')
-    readonly_fields = ('get_name', 'get_final_price', 'sell_price', 'get_profit', 'sell_price', 'get_date')
+    readonly_fields = ('get_name', 'get_final_price', 'get_profit', 'sell_price', 'get_date', 'get_sell_price')
     list_filter = ('created_at',)
     search_fields = ('final_product__name',)
 
@@ -179,7 +207,10 @@ class SellPriceHistoryAdmin(admin.ModelAdmin):
                                                                 created_at__lte=obj.created_at + datetime.timedelta(
                                                                     seconds=3))
         if final_price_queryset.first():
-            return final_price_queryset.first().sell_price
+            return format_number(final_price_queryset.first().sell_price)
+
+    def get_sell_price(self, obj):
+        return format_number(obj.sell_price)
 
     @admin.display(description='سود و ضرر')
     def get_profit(self, obj):
@@ -189,7 +220,9 @@ class SellPriceHistoryAdmin(admin.ModelAdmin):
                                                                     seconds=3))
 
         if final_price_queryset:
-            return final_price_queryset.first().sell_price - obj.sell_price
+            profit = final_price_queryset.first().sell_price - obj.sell_price
+            color = get_color(profit)
+            return format_html('<span style="color:{};">{}</span>', color, format_number(profit))
 
     def has_add_permission(self, request):
         return False
