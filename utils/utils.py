@@ -23,11 +23,40 @@ def get_profit(product):
         return final_price_history_qs.first().sell_price - sell_price_history_qs.first().sell_price
 
 
-def create_data():
-    data = pd.DataFrame({'محصولات': [product.name for product in FinalProduct.objects.all()],
-                         'قیمت نهایی': [get_last_sell_price(product) for product in FinalProduct.objects.all()],
-                         'قیمت داخل منو': [get_last_final_price(product) for product in FinalProduct.objects.all()],
-                         'سود و ضرر': [get_profit(product) for product in FinalProduct.objects.all()]})
+def get_last_price_history(primary_product: PrimaryIngredient):
+    return PriceHistory.objects.filter(ingredient=primary_product).first().unit_price
+
+
+def create_data(final_product: FinalProduct):
+    data = pd.DataFrame({
+        'نام محصول': [i.base_ingredient.name for i in final_product.ingredients.all()],
+        'واحد': [i.base_ingredient.unit.title for i in final_product.ingredients.all()],
+        'نسبت مورد نیاز': [i.unit_amount for i in final_product.ingredients.all()],
+        'قیمت نهایی': [get_last_price_history(i.base_ingredient) for i in final_product.ingredients.all()]
+    })
+
+    empty_row = pd.DataFrame({
+        'نام محصول': [' '],
+        'واحد': [' '],
+        'نسبت مورد نیاز': [' '],
+        'قیمت نهایی': [' ']
+    })
+    titles_row = pd.DataFrame({
+        'نام محصول': ['نام محصول نهایی'],
+        'واحد': ['مجموع قیمت محاسبه شده'],
+        'نسبت مورد نیاز': ['قیمت وارد شده در منو'],
+        'قیمت نهایی': ['سود یا زیان']
+    })
+
+    additional_calculation = pd.DataFrame({
+        'نام محصول': [final_product.name],
+        'واحد': [get_last_sell_price(final_product)],
+        'نسبت مورد نیاز': [get_last_final_price(final_product)],
+        'قیمت نهایی': [get_profit(final_product)]
+    })
+
+    data = pd.concat([data, empty_row, titles_row, additional_calculation], ignore_index=True)
+
     return data
 
 

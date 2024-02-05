@@ -31,7 +31,8 @@ def update_final_product(sender, instance: PriceHistory, created, **kwargs):
             price = 0
             for i in final.ingredients.all():
                 price += int(
-                    float(PriceHistory.objects.filter(ingredient=i.base_ingredient).order_by('-created_at').first().unit_price) * i.unit_amount)
+                    float(PriceHistory.objects.filter(ingredient=i.base_ingredient).order_by(
+                        '-created_at').first().unit_price) * i.unit_amount)
             if price > 0:
                 SellPriceHistory.objects.create(sell_price=price, final_product=final)
 
@@ -50,17 +51,18 @@ def update_prices(sender, instance, action, **kwargs):
 def export_data(sender, instance, created, **kwargs):
     if instance.imported_file:
         import_from_excel(instance.imported_file)
-    data = create_data()
+
     path = os.path.join(settings.MEDIA_ROOT, f'menu_{str(date2jalali(instance.created_at.date()))}.xlsx')
 
-    data_to_excel = pd.ExcelWriter(path)
-    data.to_excel(data_to_excel, sheet_name='قیمت محصولات')
-
-    # workbook = data_to_excel.book
-    # worksheet = data_to_excel.sheets['قیمت محصولات']
-    # format_right_to_left = workbook.add_format({'reading_order': 2})
-    # worksheet.right_to_left()
-
-    data_to_excel.close()
+    with pd.ExcelWriter(path, engine='xlsxwriter') as writer:
+        # Write data for each FinalProduct starting from the first sheet
+        for i, product in enumerate(FinalProduct.objects.all()):
+            data = create_data(product)
+            sheet_name = f'{product.name}' if i == 0 else f'{product.name}_{i}'
+            data.to_excel(writer, index=False, sheet_name=sheet_name)
+            worksheet = writer.sheets[sheet_name]
+            for idx, col in enumerate(data.columns):
+                max_len = max(data[col].astype(str).apply(len).max(), len(col))
+                worksheet.set_column(idx, idx, max_len + 2)
 
     Menu.objects.filter(id=instance.id).update(file=path.split(settings.MEDIA_ROOT)[1])

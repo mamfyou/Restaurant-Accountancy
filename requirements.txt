@@ -1,11 +1,15 @@
 asgiref==3.7.2
 Django==5.0.1
+django-admin-rangefilter==0.12.0
+django-jalali==6.0.1
 django-jalali-date==1.1.0
 et-xmlfile==1.1.0
+jalali-django-admin-rangefilter==0.1.2
 jdatetime==4.1.1
 numpy==1.26.3
 openpyxl==3.1.2
 pandas==2.2.0
+persiantools==3.0.1
 plum-dispatch==1.7.4
 python-dateutil==2.8.2
 python-decouple==3.8
@@ -15,3 +19,4 @@ Spire.Xls==13.12.6
 sqlparse==0.4.4
 typing_extensions==4.9.0
 tzdata==2023.4
+XlsxWriter==3.1.9
