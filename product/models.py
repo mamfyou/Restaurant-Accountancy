@@ -29,8 +29,8 @@ class PrimaryIngredient(BaseModel):
         return self.name
 
     class Meta:
-        verbose_name = 'محصول اولیه'
-        verbose_name_plural = 'محصولات اولیه'
+        verbose_name = 'ماده اولیه'
+        verbose_name_plural = 'مواد اولیه'
         ordering = ['-created_at']
 
 

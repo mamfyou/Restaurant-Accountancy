@@ -50,10 +50,10 @@ class PrimaryIngredientAdmin(admin.ModelAdmin):
                 float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
         return price
 
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ['related_ingredient']
-        return self.readonly_fields
+    # def get_readonly_fields(self, request, obj=None):
+    #     if obj:
+    #         return ['related_ingredient']
+    #     return self.readonly_fields
 
     def save_model(self, request, obj, form, change):
         form.cleaned_data.pop('price_history', None)
