@@ -98,7 +98,7 @@ def format_number(number):
     # Reverse the string, group the digits into sets of three, and join them with commas
     result = ','.join([num_str[::-1][i:i + 3] for i in range(0, len(num_str), 3)])
 
-    return str(result[::-1]) + ' تومان '
+    return str(result[::-1]) + ' ریال '
 
 
 def get_color(profit: int):
