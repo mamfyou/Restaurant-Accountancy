@@ -27,6 +27,14 @@ def get_last_price_history(primary_product: PrimaryIngredient):
     return PriceHistory.objects.filter(ingredient=primary_product).first().unit_price
 
 
+def format_number_excel(x):
+    try:
+        if type(x) == float:
+            return x
+        return '{:,.0f}'.format(float(x))
+    except (ValueError, TypeError):
+        return x
+
 def create_data(final_product: FinalProduct):
     data = pd.DataFrame({
         'نام محصول': [i.base_ingredient.name for i in final_product.ingredients.all()],
@@ -34,6 +42,10 @@ def create_data(final_product: FinalProduct):
         'نسبت مورد نیاز': [i.unit_amount for i in final_product.ingredients.all()],
         'قیمت نهایی': [get_last_price_history(i.base_ingredient) for i in final_product.ingredients.all()]
     })
+
+    # Format numbers with thousands separators
+    data['نسبت مورد نیاز'] = data['نسبت مورد نیاز'].apply(format_number_excel)
+    data['قیمت نهایی'] = data['قیمت نهایی'].apply(format_number_excel)
 
     empty_row = pd.DataFrame({
         'نام محصول': [' '],
@@ -54,6 +66,11 @@ def create_data(final_product: FinalProduct):
         'نسبت مورد نیاز': [get_last_final_price(final_product)],
         'قیمت نهایی': [get_profit(final_product)]
     })
+
+    # Format numbers with thousands separators
+    additional_calculation['واحد'] = additional_calculation['واحد'].apply(format_number_excel)
+    additional_calculation['نسبت مورد نیاز'] = additional_calculation['نسبت مورد نیاز'].apply(format_number_excel)
+    additional_calculation['قیمت نهایی'] = additional_calculation['قیمت نهایی'].apply(format_number_excel)
 
     data = pd.concat([data, empty_row, titles_row, additional_calculation], ignore_index=True)
 
