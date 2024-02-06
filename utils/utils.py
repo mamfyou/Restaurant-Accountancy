@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
@@ -34,6 +36,7 @@ def format_number_excel(x):
         return '{:,.0f}'.format(float(x))
     except (ValueError, TypeError):
         return x
+
 
 def create_data(final_product: FinalProduct):
     data = pd.DataFrame({
@@ -74,12 +77,6 @@ def create_data(final_product: FinalProduct):
     additional_calculation['قیمت نهایی'] = additional_calculation['قیمت نهایی'].apply(format_number_excel)
 
     data = pd.concat([data, empty_row, titles_row, additional_calculation], ignore_index=True)
-    style = data.style.set_table_styles(
-        [{"selector": "", "props": [("border", "1px solid grey")]},
-         {"selector": "tbody td", "props": [("border", "1px solid grey")]},
-         {"selector": "th", "props": [("border", "1px solid grey")]}
-         ]
-    )
 
     # HTML(style)
 
@@ -164,3 +161,10 @@ def get_color(profit: int):
     else:
         color = 'green'
     return color
+
+
+def denormalizer(text):
+    text = text.replace('ی', 'ي')
+    text = text.replace('ک', 'ك')
+    text = text.strip()
+    return text

@@ -3,10 +3,11 @@ import datetime
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils.html import format_html
 from jalali_date import date2jalali
 
-from utils.utils import import_from_excel, validate_excel, format_number, get_color
+from utils.utils import import_from_excel, validate_excel, format_number, get_color, denormalizer
 from .models import PrimaryIngredient, MiddleIngredient, FinalProduct, PriceHistory, SellPriceHistory, \
     FinalPriceHistory, Menu
 
@@ -50,10 +51,11 @@ class PrimaryIngredientAdmin(admin.ModelAdmin):
                 float(PriceHistory.objects.filter(ingredient=i.base_ingredient).first().unit_price) * i.unit_amount)
         return price
 
-    # def get_readonly_fields(self, request, obj=None):
-    #     if obj:
-    #         return ['related_ingredient']
-    #     return self.readonly_fields
+    def get_search_results(self, request, queryset, search_term):
+        new_search_term = denormalizer(search_term)
+
+        queryset = queryset.filter(Q(name__icontains=new_search_term) | Q(name__icontains=search_term))
+        return queryset, False
 
     def save_model(self, request, obj, form, change):
         form.cleaned_data.pop('price_history', None)
@@ -74,6 +76,13 @@ class MiddleIngredientAdmin(admin.ModelAdmin):
     autocomplete_fields = ['base_ingredient']
     form = MiddleIngredientAdminForm
     search_fields = ('base_ingredient__name',)
+
+    def get_search_results(self, request, queryset, search_term):
+        new_search_term = denormalizer(search_term)
+
+        queryset = queryset.filter(
+            Q(base_ingredient__name__icontains=new_search_term) | Q(base_ingredient__name__icontains=search_term))
+        return queryset, False
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -122,6 +131,12 @@ class FinalProductAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     autocomplete_fields = ('ingredients',)
 
+    def get_search_results(self, request, queryset, search_term):
+        new_search_term = denormalizer(search_term)
+
+        queryset = queryset.filter(Q(name__icontains=search_term) | Q(name__icontains=new_search_term))
+        return queryset, False
+
     def get_last_final_price(self, obj):
         if FinalPriceHistory.objects.filter(final_product=obj, sell_price__gt=0).first():
             return format_number(
@@ -149,8 +164,15 @@ class PriceHistoryAdmin(admin.ModelAdmin):
     fields = ('unit_price', 'ingredient' 'get_unit_price')
     readonly_fields = ('ingredient', 'get_unit_price')
     search_fields = ('ingredient__name', 'unit_price')
+
     list_filter = ('created_at',)
     list_display = ('get_date', 'ingredient', 'get_unit_price')
+
+    def get_search_results(self, request, queryset, search_term):
+        new_search_term = denormalizer(search_term)
+
+        queryset = queryset.filter(Q(ingredient__name__icontains=search_term) | Q(unit_price=search_term) | Q(ingredient__name__icontains=new_search_term) | Q(unit_price=new_search_term))
+        return queryset, False
 
     def get_date(self, obj):
         return date2jalali(obj.created_at.date())
@@ -192,6 +214,12 @@ class SellPriceHistoryAdmin(admin.ModelAdmin):
     readonly_fields = ('get_name', 'get_final_price', 'get_profit', 'sell_price', 'get_date', 'get_sell_price')
     list_filter = ('created_at',)
     search_fields = ('final_product__name',)
+
+    def get_search_results(self, request, queryset, search_term):
+        new_search_term = denormalizer(search_term)
+
+        queryset = queryset.filter(Q(final_product__name__icontains=search_term) | Q(final_product__name__icontains=new_search_term))
+        return queryset, False
 
     @admin.display(description='نام')
     def get_name(self, obj):
