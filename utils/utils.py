@@ -2,7 +2,7 @@ import pandas as pd
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from openpyxl.reader.excel import load_workbook
-
+from IPython.display import display, HTML
 from product.models import FinalProduct, FinalPriceHistory, SellPriceHistory, PrimaryIngredient, PriceHistory, Unit
 
 
@@ -53,6 +53,7 @@ def create_data(final_product: FinalProduct):
         'نسبت مورد نیاز': [' '],
         'قیمت نهایی': [' ']
     })
+
     titles_row = pd.DataFrame({
         'نام محصول': ['نام محصول نهایی'],
         'واحد': ['مجموع قیمت محاسبه شده'],
@@ -73,6 +74,14 @@ def create_data(final_product: FinalProduct):
     additional_calculation['قیمت نهایی'] = additional_calculation['قیمت نهایی'].apply(format_number_excel)
 
     data = pd.concat([data, empty_row, titles_row, additional_calculation], ignore_index=True)
+    style = data.style.set_table_styles(
+        [{"selector": "", "props": [("border", "1px solid grey")]},
+         {"selector": "tbody td", "props": [("border", "1px solid grey")]},
+         {"selector": "th", "props": [("border", "1px solid grey")]}
+         ]
+    )
+
+    # HTML(style)
 
     return data
 

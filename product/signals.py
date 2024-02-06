@@ -47,7 +47,6 @@ def update_prices(sender, instance, action, **kwargs):
         SellPriceHistory.objects.create(sell_price=price, final_product=instance)
 
 
-@receiver(post_save, sender=Menu)
 def export_data(sender, instance, created, **kwargs):
     if instance.imported_file:
         import_from_excel(instance.imported_file)
@@ -55,6 +54,11 @@ def export_data(sender, instance, created, **kwargs):
     path = os.path.join(settings.MEDIA_ROOT, f'menu_{str(date2jalali(instance.created_at.date()))}.xlsx')
 
     with pd.ExcelWriter(path, engine='xlsxwriter') as writer:
+        # Create a cell format with border
+        cell_format = writer.book.add_format(
+            {'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True, 'font_size': 12,
+             'font_name': 'B Nazanin', 'num_format': '#,##0'})
+
         # Write data for each FinalProduct starting from the first sheet
         for i, product in enumerate(FinalProduct.objects.all()):
             data = create_data(product)
@@ -63,6 +67,6 @@ def export_data(sender, instance, created, **kwargs):
             worksheet = writer.sheets[sheet_name]
             for idx, col in enumerate(data.columns):
                 max_len = max(data[col].astype(str).apply(len).max(), len(col))
-                worksheet.set_column(idx, idx, max_len + 2)
+                worksheet.set_column(idx, idx, max_len + 2, cell_format)
 
     Menu.objects.filter(id=instance.id).update(file=path.split(settings.MEDIA_ROOT)[1])
