@@ -2,7 +2,7 @@ import pandas as pd
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from openpyxl.reader.excel import load_workbook
-from IPython.display import display, HTML
+
 from product.models import FinalProduct, FinalPriceHistory, SellPriceHistory, PrimaryIngredient, PriceHistory, Unit
 
 
